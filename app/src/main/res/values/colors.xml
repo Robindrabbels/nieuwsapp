@@ -1,0 +1,7 @@
+<resources>
+    <color name="flits_red">#E5132B</color>
+    <color name="flits_red_dark">#A50D1F</color>
+    <color name="flits_red_light">#FF4B5C</color>
+    <color name="splash_bg">#E5132B</color>
+    <color name="ic_launcher_background">#E5132B</color>
+</resources>

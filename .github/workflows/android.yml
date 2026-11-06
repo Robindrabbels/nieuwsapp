@@ -1,0 +1,46 @@
+name: Android build
+
+on:
+  push:
+    branches: [ main, "claude/**" ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Release bundle (AAB)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          FLITS_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          FLITS_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          FLITS_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > release.jks
+            export FLITS_KEYSTORE=release.jks
+          fi
+          ./gradlew bundleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flits-apk-debug
+          path: app/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flits-aab-release
+          path: app/build/outputs/bundle/release/*.aab
